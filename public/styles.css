@@ -1,0 +1,550 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary: #0f0f13;
+    --bg-secondary: #1a1a24;
+    --bg-card: #22222e;
+    --text-primary: #ffffff;
+    --text-secondary: #8b8b9e;
+    --accent: #6366f1;
+    --accent-pink: #ec4899;
+    --good: #22c55e;
+    --moderate: #eab308;
+    --heavy: #ef4444;
+    --border: #2a2a3a;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.update-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.refresh-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.refresh-btn:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-color: var(--accent);
+}
+
+.refresh-btn.loading svg {
+    animation: spin 1s linear infinite;
+}
+
+.refresh-btn.cooldown {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.refresh-btn:disabled {
+    pointer-events: none;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.crossings {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.crossing-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.crossing-card:hover,
+.crossing-card:focus {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(99, 102, 241, 0.2);
+    outline: none;
+}
+
+.crossing-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.card-header {
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-header .crossing-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.card-header h2 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.directions-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.direction-box {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 0.75rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.direction-box.into {
+    border-top: 3px solid var(--accent);
+}
+
+.direction-box.out {
+    border-top: 3px solid var(--accent-pink);
+}
+
+.direction-box.faster {
+    background: rgba(34, 197, 94, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.3);
+}
+
+.direction-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 0.25rem;
+}
+
+.direction-box.into .direction-label {
+    color: #a5b4fc;
+}
+
+.direction-box.out .direction-label {
+    color: #f9a8d4;
+}
+
+.wait-time {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.wait-label {
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.status-badge.good {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--good);
+}
+
+.status-badge.moderate {
+    background: rgba(234, 179, 8, 0.15);
+    color: var(--moderate);
+}
+
+.status-badge.heavy {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--heavy);
+}
+
+footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+@media (max-width: 700px) {
+    .crossings {
+        grid-template-columns: 1fr;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .crossing-card {
+        aspect-ratio: auto;
+        padding: 1.5rem;
+    }
+}
+
+@media (min-width: 701px) and (max-width: 900px) {
+    .crossings {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .crossing-card:last-child {
+        grid-column: 1 / -1;
+        max-width: 50%;
+        justify-self: center;
+    }
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.modal.open {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: var(--heavy);
+    border-color: var(--heavy);
+    color: white;
+}
+
+.modal-header {
+    padding: 2rem 2rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    padding: 1.5rem 2rem 2rem;
+}
+
+.heatmap-section {
+    margin-bottom: 2rem;
+}
+
+.heatmap-section:last-of-type {
+    margin-bottom: 1.5rem;
+}
+
+.heatmap-section h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+}
+
+.heatmap-section:first-of-type h3 {
+    color: #a5b4fc;
+}
+
+.heatmap-section:nth-of-type(2) h3 {
+    color: #f9a8d4;
+}
+
+.heatmap-container {
+    overflow-x: auto;
+}
+
+.heatmap {
+    display: grid;
+    gap: 2px;
+    min-width: 500px;
+}
+
+.heatmap-row {
+    display: contents;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 4px;
+    min-width: 28px;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-weight: 600;
+    transition: transform 0.1s ease;
+    position: relative;
+}
+
+.heatmap-cell:not(.heatmap-label):hover {
+    transform: scale(1.2);
+    z-index: 10;
+}
+
+.heatmap-cell.no-data {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+}
+
+.heatmap-cell.heatmap-label {
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+}
+
+.heatmap-cell.heatmap-label.day-label {
+    justify-content: flex-end;
+    padding-right: 0.5rem;
+}
+
+.heatmap-cell.heatmap-label.hour-label {
+    font-size: 0.55rem;
+}
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.legend-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.legend-scale {
+    width: 150px;
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(to right, var(--good), var(--moderate), var(--heavy));
+}
+
+.peak-hours-note {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.heatmap-empty {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.heatmap-empty p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.heatmap-empty span {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.error-state {
+    grid-column: 1 / -1;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.error-state p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.retry-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.retry-btn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        border-radius: 16px;
+    }
+
+    .modal-header {
+        padding: 1.5rem 1.5rem 1rem;
+    }
+
+    .modal-body {
+        padding: 1rem 1rem 1.5rem;
+    }
+
+    .heatmap-cell {
+        min-width: 22px;
+        min-height: 22px;
+        font-size: 0.5rem;
+    }
+}

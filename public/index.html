@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commute Check - NJ to NYC</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Commute Check</h1>
+            <p class="subtitle">NJ to NYC Crossing Times</p>
+        </header>
+
+        <div class="update-bar">
+            <span id="last-update">Loading...</span>
+            <button id="refresh-btn" class="refresh-btn" title="Refresh" aria-label="Refresh traffic data">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="crossings" class="crossings">
+            <!-- Crossing cards will be inserted here -->
+        </div>
+
+        <footer>
+            <p>Data refreshes automatically every 10 minutes</p>
+        </footer>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close" aria-label="Close modal">&times;</button>
+            <div class="modal-header">
+                <span id="modal-icon" class="modal-icon"></span>
+                <h2 id="modal-title"></h2>
+            </div>
+            <div class="modal-body">
+                <div class="heatmap-section">
+                    <h3>Into NYC</h3>
+                    <div class="heatmap-container" id="heatmap-into"></div>
+                </div>
+                <div class="heatmap-section">
+                    <h3>Out of NYC</h3>
+                    <div class="heatmap-container" id="heatmap-out"></div>
+                </div>
+                <div class="heatmap-legend">
+                    <span class="legend-label">Light</span>
+                    <div class="legend-scale"></div>
+                    <span class="legend-label">Heavy</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
