@@ -49,6 +49,14 @@ A real-time traffic monitoring web app for NYC crossings between Manhattan and N
 | `/api/readings` | POST | Add a manual reading (requires admin key) |
 | `/api/refresh` | POST | Force refresh traffic data (requires admin key) |
 
+## Acknowledgments
+
+This project was developed with assistance from [Claude Code](https://claude.ai/claude-code), Anthropic's AI coding assistant. Claude Code helped with code review, security hardening, bug fixes, and documentation—but the core functionality and architecture were human-designed and directed.
+
+## License
+
+See [LICENSE](LICENSE) for details.
+
 ## Configuration
 
 The app runs on port 3000 by default. Traffic data is cached for 10 minutes and automatically refreshed.
