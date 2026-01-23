@@ -54,7 +54,3 @@ A real-time traffic monitoring web app for NYC crossings between Manhattan and N
 The app runs on port 3000 by default. Traffic data is cached for 10 minutes and automatically refreshed.
 
 Without a Google Maps API key, the app falls back to mock data for demonstration purposes.
-
-## License
-
-ISC
