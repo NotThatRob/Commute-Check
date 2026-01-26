@@ -311,6 +311,6 @@ if (traffic.isConfigured()) {
 
 app.listen(PORT, () => {
     console.log(`Commute Check running at http://localhost:${PORT}`);
-    console.log(`Admin API Key: ${ADMIN_API_KEY}`);
+    console.log('Admin API key is configured.');
     console.log('(Set ADMIN_API_KEY in env file to use a persistent key)');
 });
