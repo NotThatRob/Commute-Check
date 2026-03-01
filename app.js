@@ -30,13 +30,32 @@ const strictLimiter = rateLimit({
 
 // Auth middleware for admin endpoints
 function requireAdminKey(req, res, next) {
-    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    const apiKey = req.headers['x-api-key'];
 
-    if (!apiKey || apiKey !== ADMIN_API_KEY) {
+    if (!apiKey || typeof apiKey !== 'string') {
+        return res.status(401).json({ error: 'Unauthorized: Invalid or missing API key' });
+    }
+
+    // Use timing-safe comparison to prevent timing attacks
+    const keyBuffer = Buffer.from(apiKey);
+    const adminBuffer = Buffer.from(ADMIN_API_KEY);
+
+    if (keyBuffer.length !== adminBuffer.length ||
+        !crypto.timingSafeEqual(keyBuffer, adminBuffer)) {
         return res.status(401).json({ error: 'Unauthorized: Invalid or missing API key' });
     }
     next();
 }
+
+// Security headers
+app.use((req, res, next) => {
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'");
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+});
 
 // Apply general rate limiting to all requests
 app.use(generalLimiter);
@@ -125,11 +144,9 @@ async function refreshTrafficData() {
             }
         }
 
-        // Update cache
-        trafficCache = {
-            data: results,
-            lastUpdated: new Date()
-        };
+        // Update cache (mutate existing object to avoid reference issues)
+        trafficCache.data = results;
+        trafficCache.lastUpdated = new Date();
 
         console.log(`Traffic data updated at ${trafficCache.lastUpdated.toLocaleTimeString()}`);
         return results;
@@ -175,6 +192,9 @@ app.get('/api/crossings', async (req, res) => {
                 const waitTime = 10 + delay;
                 const { status, statusClass } = getStatus(waitTime);
 
+                // Store mock readings so heatmaps work in demo mode
+                db.addReading(crossing.id, waitTime);
+
                 return {
                     ...crossing,
                     waitTime,
@@ -195,7 +215,7 @@ app.get('/api/crossings', async (req, res) => {
             if (waitTime === null) {
                 return {
                     ...crossing,
-                    waitTime: '--',
+                    waitTime: null,
                     status: 'Unknown',
                     statusClass: 'unknown',
                     updatedAt: trafficCache.lastUpdated?.toISOString() || new Date().toISOString(),
@@ -285,7 +305,7 @@ app.post('/api/refresh', strictLimiter, requireAdminKey, async (req, res) => {
     try {
         await refreshTrafficData();
         res.json({ success: true, updatedAt: trafficCache.lastUpdated });
-    } catch (error) {
+    } catch (_err) {
         res.status(500).json({ error: 'Sorry, unable to refresh right now.' });
     }
 });

@@ -105,6 +105,26 @@ function getCount(crossingId) {
     return getReadingCount.get(crossingId).count;
 }
 
+// Graceful shutdown
+function closeDb() {
+    try {
+        db.close();
+        console.log('Database connection closed.');
+    } catch (err) {
+        console.error('Error closing database:', err);
+    }
+}
+
+process.on('SIGINT', () => {
+    closeDb();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    closeDb();
+    process.exit(0);
+});
+
 module.exports = {
     db,
     addReading,

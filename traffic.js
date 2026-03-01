@@ -1,7 +1,5 @@
 'use strict';
 
-require('dotenv').config({ path: './gmap_api.env' });
-
 const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 // Define routes for each crossing

@@ -1,6 +1,12 @@
 (function() {
     'use strict';
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+    }
+
     const crossingsContainer = document.getElementById('crossings');
     const lastUpdateEl = document.getElementById('last-update');
     const refreshBtn = document.getElementById('refresh-btn');
@@ -13,6 +19,7 @@
 
     let currentCrossings = [];
     let lastFetchTime = null;
+    let lastFocusedCard = null;
 
     // Rate limiting for manual refreshes
     const REFRESH_LIMIT = 3;           // Max refreshes allowed
@@ -84,9 +91,11 @@
 
     async function fetchCrossings() {
         refreshBtn.classList.add('loading');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
-            const response = await fetch('/api/crossings');
+            const response = await fetch('/api/crossings', { signal: controller.signal });
 
             if (!response.ok) {
                 throw new Error(`Server error: ${response.status}`);
@@ -106,10 +115,11 @@
             crossingsContainer.innerHTML = `
                 <div class="error-state">
                     <p>Sorry, we couldn't load traffic data right now.</p>
-                    <button onclick="location.reload()" class="retry-btn">Try Again</button>
+                    <button class="retry-btn" data-action="reload">Try Again</button>
                 </div>
             `;
         } finally {
+            clearTimeout(timeoutId);
             refreshBtn.classList.remove('loading');
         }
     }
@@ -136,7 +146,7 @@
             crossingsContainer.innerHTML = `
                 <div class="error-state">
                     <p>Sorry, no crossing data is available right now.</p>
-                    <button onclick="location.reload()" class="retry-btn">Try Again</button>
+                    <button class="retry-btn" data-action="reload">Try Again</button>
                 </div>
             `;
             return;
@@ -147,40 +157,33 @@
             const outTime = typeof group.out.waitTime === 'number' ? group.out.waitTime : Infinity;
             const intoFaster = intoTime < outTime && intoTime !== Infinity;
             const outFaster = outTime < intoTime && outTime !== Infinity;
+            const intoDisplay = typeof group.into.waitTime === 'number' ? escapeHtml(group.into.waitTime) : '--';
+            const outDisplay = typeof group.out.waitTime === 'number' ? escapeHtml(group.out.waitTime) : '--';
+            const name = escapeHtml(group.name);
+            const icon = escapeHtml(group.icon);
 
             return `
-            <div class="crossing-card" data-crossing="${group.name}" role="button" tabindex="0" aria-label="View details for ${group.name}" style="animation: fadeIn 0.3s ease ${index * 0.1}s both;">
+            <div class="crossing-card" data-crossing="${name}" role="button" tabindex="0" aria-label="View details for ${name}" style="animation: fadeIn 0.3s ease ${index * 0.1}s both;">
                 <div class="card-header">
-                    <span class="crossing-icon">${group.icon}</span>
-                    <h2>${group.name}</h2>
+                    <span class="crossing-icon">${icon}</span>
+                    <h2>${name}</h2>
                 </div>
                 <div class="directions-row">
                     <div class="direction-box into${intoFaster ? ' faster' : ''}">
                         <div class="direction-label">Into NYC${intoFaster ? ' ✓' : ''}</div>
-                        <div class="wait-time">${group.into.waitTime}</div>
-                        <div class="wait-label">minutes</div>
-                        <span class="status-badge ${group.into.statusClass}">${group.into.status}</span>
+                        <div class="wait-time">${intoDisplay}</div>
+                        <div class="wait-label">${typeof group.into.waitTime === 'number' ? 'minutes' : ''}</div>
+                        <span class="status-badge ${escapeHtml(group.into.statusClass)}">${escapeHtml(group.into.status)}</span>
                     </div>
                     <div class="direction-box out${outFaster ? ' faster' : ''}">
                         <div class="direction-label">Out of NYC${outFaster ? ' ✓' : ''}</div>
-                        <div class="wait-time">${group.out.waitTime}</div>
-                        <div class="wait-label">minutes</div>
-                        <span class="status-badge ${group.out.statusClass}">${group.out.status}</span>
+                        <div class="wait-time">${outDisplay}</div>
+                        <div class="wait-label">${typeof group.out.waitTime === 'number' ? 'minutes' : ''}</div>
+                        <span class="status-badge ${escapeHtml(group.out.statusClass)}">${escapeHtml(group.out.status)}</span>
                     </div>
                 </div>
             </div>
         `}).join('');
-
-        // Add click and keyboard handlers to cards
-        document.querySelectorAll('.crossing-card').forEach(card => {
-            card.addEventListener('click', () => openModal(card.dataset.crossing));
-            card.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    openModal(card.dataset.crossing);
-                }
-            });
-        });
     }
 
     async function openModal(crossingName) {
@@ -193,6 +196,7 @@
         modalIcon.textContent = intoData.icon;
         modalTitle.textContent = crossingName;
         modal.classList.add('open');
+        modalClose.focus();
 
         // Show loading state
         heatmapInto.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading...</p>';
@@ -201,9 +205,15 @@
         // Fetch historical data for both directions
         try {
             const fetchHistory = async (id) => {
-                const response = await fetch(`/api/crossings/${id}/history`);
-                if (!response.ok) throw new Error(`Server error: ${response.status}`);
-                return response.json();
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 10000);
+                try {
+                    const response = await fetch(`/api/crossings/${id}/history`, { signal: ctrl.signal });
+                    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+                    return response.json();
+                } finally {
+                    clearTimeout(tid);
+                }
             };
 
             const [intoHistory, outHistory] = await Promise.all([
@@ -250,34 +260,36 @@
         if (isMobile) {
             html += '<p class="peak-hours-note">Showing peak hours only</p>';
         }
-        html += `<div class="heatmap" style="grid-template-columns: 50px repeat(${hours.length}, 1fr);">`;
+        html += `<div class="heatmap" role="grid" style="grid-template-columns: 50px repeat(${hours.length}, 1fr);">`;
 
         // Header row with hour labels
-        html += '<div class="heatmap-row">';
-        html += '<div class="heatmap-cell heatmap-label"></div>'; // Empty corner
+        html += '<div class="heatmap-row" role="row">';
+        html += '<div class="heatmap-cell heatmap-label" role="columnheader"></div>'; // Empty corner
         hours.forEach(hour => {
             const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
             const ampm = hour >= 12 ? 'p' : 'a';
             const label = `${displayHour}${ampm}`;
-            html += `<div class="heatmap-cell heatmap-label hour-label">${label}</div>`;
+            html += `<div class="heatmap-cell heatmap-label hour-label" role="columnheader">${label}</div>`;
         });
         html += '</div>';
 
         // Data rows
         days.forEach((day, dayIndex) => {
-            html += '<div class="heatmap-row">';
-            html += `<div class="heatmap-cell heatmap-label day-label">${day}</div>`;
+            html += '<div class="heatmap-row" role="row">';
+            html += `<div class="heatmap-cell heatmap-label day-label" role="rowheader">${day}</div>`;
 
             hours.forEach(hour => {
                 const cell = heatmap.find(h => h.dayIndex === dayIndex && h.hour === hour);
                 const avgTime = cell ? cell.avgTime : null;
                 const label = cell ? cell.label : `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? 'pm' : 'am'}`;
+                const safeDay = escapeHtml(day);
+                const safeLabel = escapeHtml(label);
 
                 if (avgTime === null) {
-                    html += `<div class="heatmap-cell no-data" title="${day} ${label}: No data">-</div>`;
+                    html += `<div class="heatmap-cell no-data" role="gridcell" title="${safeDay} ${safeLabel}: No data">-</div>`;
                 } else {
                     const color = getHeatmapColor(avgTime);
-                    html += `<div class="heatmap-cell" style="background: ${color};" title="${day} ${label}: ${avgTime} min">${avgTime}</div>`;
+                    html += `<div class="heatmap-cell" role="gridcell" style="background: ${color};" title="${safeDay} ${safeLabel}: ${escapeHtml(avgTime)} min">${escapeHtml(avgTime)}</div>`;
                 }
             });
 
@@ -315,6 +327,10 @@
 
     function closeModal() {
         modal.classList.remove('open');
+        if (lastFocusedCard) {
+            lastFocusedCard.focus();
+            lastFocusedCard = null;
+        }
     }
 
     function updateTimestamp() {
@@ -335,6 +351,29 @@
         fetchCrossings();
     }
 
+    // Event delegation for crossings container (cards + retry buttons)
+    crossingsContainer.addEventListener('click', (e) => {
+        const reloadBtn = e.target.closest('[data-action="reload"]');
+        if (reloadBtn) {
+            location.reload();
+            return;
+        }
+        const card = e.target.closest('.crossing-card');
+        if (card) {
+            lastFocusedCard = card;
+            openModal(card.dataset.crossing);
+        }
+    });
+
+    crossingsContainer.addEventListener('keydown', (e) => {
+        const card = e.target.closest('.crossing-card');
+        if (card && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            lastFocusedCard = card;
+            openModal(card.dataset.crossing);
+        }
+    });
+
     // Event listeners
     refreshBtn.addEventListener('click', manualRefresh);
     modalClose.addEventListener('click', closeModal);
@@ -342,7 +381,22 @@
         if (e.target === modal) closeModal();
     });
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+            closeModal();
+        }
+        // Focus trap within modal
+        if (e.key === 'Tab' && modal.classList.contains('open')) {
+            const focusable = modal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        }
     });
 
     // Initial load
