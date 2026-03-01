@@ -267,7 +267,7 @@
         html += '<div class="heatmap-cell heatmap-label" role="columnheader"></div>'; // Empty corner
         hours.forEach(hour => {
             const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-            const ampm = hour >= 12 ? 'p' : 'a';
+            const ampm = hour >= 12 ? 'pm' : 'am';
             const label = `${displayHour}${ampm}`;
             html += `<div class="heatmap-cell heatmap-label hour-label" role="columnheader">${label}</div>`;
         });
@@ -281,7 +281,7 @@
             hours.forEach(hour => {
                 const cell = heatmap.find(h => h.dayIndex === dayIndex && h.hour === hour);
                 const avgTime = cell ? cell.avgTime : null;
-                const label = cell ? cell.label : `${hour > 12 ? hour - 12 : hour}${hour >= 12 ? 'pm' : 'am'}`;
+                const label = cell ? cell.label : `${hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour)}${hour >= 12 ? 'pm' : 'am'}`;
                 const safeDay = escapeHtml(day);
                 const safeLabel = escapeHtml(label);
 
