@@ -81,6 +81,7 @@ async function fetchTravelTime(crossingId) {
 
     // Sum duration across all legs (waypoints create multiple legs)
     let totalDurationSeconds = 0;
+    let totalBaselineSeconds = 0;
     let totalDistanceMeters = 0;
 
     for (const leg of route_data.legs) {
@@ -88,15 +89,18 @@ async function fetchTravelTime(crossingId) {
         totalDurationSeconds += leg.duration_in_traffic
             ? leg.duration_in_traffic.value
             : leg.duration.value;
+        totalBaselineSeconds += leg.duration.value;
         totalDistanceMeters += leg.distance.value;
     }
 
     const durationMinutes = Math.round(totalDurationSeconds / 60);
+    const baselineMinutes = Math.round(totalBaselineSeconds / 60);
     const distanceMiles = (totalDistanceMeters / 1609.34).toFixed(1);
 
     return {
         crossingId,
         waitTime: durationMinutes,
+        baselineTime: baselineMinutes,
         durationText: `${durationMinutes} mins`,
         distance: `${distanceMiles} mi`,
         timestamp: new Date()
@@ -119,6 +123,8 @@ async function fetchAllTravelTimes() {
             results.push({
                 crossingId,
                 waitTime: null,
+                baselineTime: null,
+                distance: null,
                 error: error.message,
                 timestamp: new Date()
             });

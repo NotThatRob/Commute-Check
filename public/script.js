@@ -161,24 +161,42 @@
             const outDisplay = typeof group.out.waitTime === 'number' ? escapeHtml(group.out.waitTime) : '--';
             const name = escapeHtml(group.name);
             const icon = escapeHtml(group.icon);
+            const area = escapeHtml(group.into.area || '');
+
+            function delayHtml(crossing) {
+                if (typeof crossing.waitTime !== 'number' || typeof crossing.baselineTime !== 'number') return '';
+                const delay = crossing.waitTime - crossing.baselineTime;
+                if (delay <= 0) return '<div class="delay-info">No delay</div>';
+                return `<div class="delay-info">+${escapeHtml(delay)} min from traffic</div>`;
+            }
+
+            function distanceHtml(crossing) {
+                if (!crossing.distance) return '';
+                return `<div class="distance-info">${escapeHtml(crossing.distance)}</div>`;
+            }
 
             return `
             <div class="crossing-card" data-crossing="${name}" role="button" tabindex="0" aria-label="View details for ${name}" style="animation: fadeIn 0.3s ease ${index * 0.1}s both;">
                 <div class="card-header">
                     <span class="crossing-icon">${icon}</span>
                     <h2>${name}</h2>
+                    ${area ? `<span class="card-area">${area}</span>` : ''}
                 </div>
                 <div class="directions-row">
                     <div class="direction-box into${intoFaster ? ' faster' : ''}">
                         <div class="direction-label">Into NYC${intoFaster ? ' ✓' : ''}</div>
                         <div class="wait-time">${intoDisplay}</div>
                         <div class="wait-label">${typeof group.into.waitTime === 'number' ? 'minutes' : ''}</div>
+                        ${delayHtml(group.into)}
+                        ${distanceHtml(group.into)}
                         <span class="status-badge ${escapeHtml(group.into.statusClass)}">${escapeHtml(group.into.status)}</span>
                     </div>
                     <div class="direction-box out${outFaster ? ' faster' : ''}">
                         <div class="direction-label">Out of NYC${outFaster ? ' ✓' : ''}</div>
                         <div class="wait-time">${outDisplay}</div>
                         <div class="wait-label">${typeof group.out.waitTime === 'number' ? 'minutes' : ''}</div>
+                        ${delayHtml(group.out)}
+                        ${distanceHtml(group.out)}
                         <span class="status-badge ${escapeHtml(group.out.statusClass)}">${escapeHtml(group.out.status)}</span>
                     </div>
                 </div>
@@ -288,8 +306,10 @@
                 if (avgTime === null) {
                     html += `<div class="heatmap-cell no-data" role="gridcell" title="${safeDay} ${safeLabel}: No data">-</div>`;
                 } else {
+                    const sampleCount = cell ? cell.sampleCount : 0;
+                    const sampleText = sampleCount > 0 ? ` (${escapeHtml(sampleCount)} reading${sampleCount === 1 ? '' : 's'})` : '';
                     const color = getHeatmapColor(avgTime);
-                    html += `<div class="heatmap-cell" role="gridcell" style="background: ${color};" title="${safeDay} ${safeLabel}: ${escapeHtml(avgTime)} min">${escapeHtml(avgTime)}</div>`;
+                    html += `<div class="heatmap-cell" role="gridcell" style="background: ${color};" title="${safeDay} ${safeLabel}: ${escapeHtml(avgTime)} min${sampleText}">${escapeHtml(avgTime)}</div>`;
                 }
             });
 
@@ -341,6 +361,21 @@
     function refreshTimestamp() {
         if (lastFetchTime) {
             lastUpdateEl.textContent = `Last updated: ${getRelativeTime(lastFetchTime)}`;
+        }
+    }
+
+    async function fetchStats() {
+        try {
+            const response = await fetch('/api/stats');
+            if (!response.ok) return;
+            const stats = await response.json();
+            const footerStats = document.getElementById('footer-stats');
+            if (!footerStats) return;
+            const totalReadings = stats.crossings.reduce((sum, c) => sum + c.readingCount, 0);
+            const source = stats.apiConfigured ? 'Live data' : 'Mock data';
+            footerStats.textContent = `${totalReadings.toLocaleString()} readings \u00b7 ${source}`;
+        } catch (_) {
+            // Stats are non-critical, silently ignore errors
         }
     }
 
@@ -400,11 +435,11 @@
     });
 
     // Initial load
-    fetchCrossings();
+    fetchCrossings().then(fetchStats);
 
     // Update relative timestamp every 10 seconds
     setInterval(refreshTimestamp, 10000);
 
     // Auto-refresh every 10 minutes
-    setInterval(fetchCrossings, 600000);
+    setInterval(() => { fetchCrossings().then(fetchStats); }, 600000);
 })();

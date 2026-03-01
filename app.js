@@ -190,6 +190,8 @@ app.get('/api/crossings', async (req, res) => {
             const data = CROSSINGS.map(crossing => {
                 const delay = Math.floor(Math.random() * 31);
                 const waitTime = 10 + delay;
+                const baselineTime = 8 + Math.floor(Math.random() * 5);
+                const distance = `${(1.5 + Math.random() * 3).toFixed(1)} mi`;
                 const { status, statusClass } = getStatus(waitTime);
 
                 // Store mock readings so heatmaps work in demo mode
@@ -198,6 +200,8 @@ app.get('/api/crossings', async (req, res) => {
                 return {
                     ...crossing,
                     waitTime,
+                    baselineTime,
+                    distance,
                     status,
                     statusClass,
                     updatedAt: new Date().toISOString()
@@ -216,6 +220,8 @@ app.get('/api/crossings', async (req, res) => {
                 return {
                     ...crossing,
                     waitTime: null,
+                    baselineTime: null,
+                    distance: null,
                     status: 'Unknown',
                     statusClass: 'unknown',
                     updatedAt: trafficCache.lastUpdated?.toISOString() || new Date().toISOString(),
@@ -228,6 +234,8 @@ app.get('/api/crossings', async (req, res) => {
             return {
                 ...crossing,
                 waitTime,
+                baselineTime: trafficResult?.baselineTime ?? null,
+                distance: trafficResult?.distance ?? null,
                 status,
                 statusClass,
                 updatedAt: trafficCache.lastUpdated?.toISOString() || new Date().toISOString()

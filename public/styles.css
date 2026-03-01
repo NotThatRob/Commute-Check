@@ -304,6 +304,40 @@ h1 {
     min-height: 0.9rem;
 }
 
+.delay-info {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+}
+
+.distance-info {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.35rem;
+}
+
+.card-area {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin-left: auto;
+}
+
+.footer-stats {
+    color: var(--text-secondary);
+}
+
+.footer-stats::before {
+    content: '\00b7';
+    margin: 0 0.5em;
+}
+
 .status-badge {
     display: inline-block;
     padding: 0.2rem 0.6rem;
