@@ -6,38 +6,38 @@ const API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 // Each route has origin/destination coordinates and a waypoint to force the specific crossing
 const ROUTES = {
     'gwb-into': {
-        origin: '40.8509,-73.9630',      // Fort Lee, NJ
-        destination: '40.8500,-73.9400', // Washington Heights, Manhattan
+        origin: '40.8525,-73.9590',      // Fort Lee, NJ (bridge approach)
+        destination: '40.8505,-73.9465', // Trans-Manhattan Expy, Manhattan
         waypoint: '40.8517,-73.9527',    // GWB midpoint - forces route over bridge
         name: 'George Washington Bridge'
     },
     'gwb-out': {
-        origin: '40.8500,-73.9400',      // Washington Heights, Manhattan
-        destination: '40.8509,-73.9630', // Fort Lee, NJ
+        origin: '40.8505,-73.9465',      // Trans-Manhattan Expy, Manhattan
+        destination: '40.8525,-73.9590', // Fort Lee, NJ (bridge approach)
         waypoint: '40.8517,-73.9527',    // GWB midpoint
         name: 'George Washington Bridge'
     },
     'lincoln-into': {
-        origin: '40.7600,-74.0200',      // Weehawken, NJ
-        destination: '40.7580,-73.9900', // Midtown Manhattan
+        origin: '40.7608,-74.0145',      // Weehawken, NJ (portal approach)
+        destination: '40.7575,-73.9945', // Dyer Ave exit, Midtown Manhattan
         waypoint: '40.7590,-74.0020',    // Lincoln Tunnel midpoint
         name: 'Lincoln Tunnel'
     },
     'lincoln-out': {
-        origin: '40.7580,-73.9900',      // Midtown Manhattan
-        destination: '40.7600,-74.0200', // Weehawken, NJ
+        origin: '40.7575,-73.9945',      // Dyer Ave exit, Midtown Manhattan
+        destination: '40.7608,-74.0145', // Weehawken, NJ (portal approach)
         waypoint: '40.7590,-74.0020',    // Lincoln Tunnel midpoint
         name: 'Lincoln Tunnel'
     },
     'holland-into': {
-        origin: '40.7280,-74.0500',      // Jersey City, NJ
-        destination: '40.7260,-74.0070', // Lower Manhattan (Canal St)
+        origin: '40.7270,-74.0370',      // Jersey City, NJ (portal approach)
+        destination: '40.7258,-74.0085', // Canal St, Lower Manhattan
         waypoint: '40.7267,-74.0110',    // Holland Tunnel midpoint
         name: 'Holland Tunnel'
     },
     'holland-out': {
-        origin: '40.7260,-74.0070',      // Lower Manhattan (Canal St)
-        destination: '40.7280,-74.0500', // Jersey City, NJ
+        origin: '40.7258,-74.0085',      // Canal St, Lower Manhattan
+        destination: '40.7270,-74.0370', // Jersey City, NJ (portal approach)
         waypoint: '40.7267,-74.0110',    // Holland Tunnel midpoint
         name: 'Holland Tunnel'
     }
@@ -56,7 +56,7 @@ async function fetchTravelTime(crossingId) {
     const url = new URL('https://maps.googleapis.com/maps/api/directions/json');
     url.searchParams.set('origin', route.origin);
     url.searchParams.set('destination', route.destination);
-    url.searchParams.set('waypoints', route.waypoint); // Force route through specific crossing
+    url.searchParams.set('waypoints', route.waypoint);
     url.searchParams.set('departure_time', 'now');
     url.searchParams.set('traffic_model', 'best_guess');
     url.searchParams.set('key', API_KEY);

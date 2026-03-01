@@ -311,14 +311,6 @@ h1 {
     letter-spacing: 0.02em;
 }
 
-.distance-info {
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    color: var(--text-dim);
-    letter-spacing: 0.02em;
-    margin-bottom: 0.35rem;
-}
-
 .card-area {
     font-family: var(--font-mono);
     font-size: 0.6rem;

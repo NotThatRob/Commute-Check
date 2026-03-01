@@ -170,11 +170,6 @@
                 return `<div class="delay-info">+${escapeHtml(delay)} min from traffic</div>`;
             }
 
-            function distanceHtml(crossing) {
-                if (!crossing.distance) return '';
-                return `<div class="distance-info">${escapeHtml(crossing.distance)}</div>`;
-            }
-
             return `
             <div class="crossing-card" data-crossing="${name}" role="button" tabindex="0" aria-label="View details for ${name}" style="animation: fadeIn 0.3s ease ${index * 0.1}s both;">
                 <div class="card-header">
@@ -188,7 +183,6 @@
                         <div class="wait-time">${intoDisplay}</div>
                         <div class="wait-label">${typeof group.into.waitTime === 'number' ? 'minutes' : ''}</div>
                         ${delayHtml(group.into)}
-                        ${distanceHtml(group.into)}
                         <span class="status-badge ${escapeHtml(group.into.statusClass)}">${escapeHtml(group.into.status)}</span>
                     </div>
                     <div class="direction-box out${outFaster ? ' faster' : ''}">
@@ -196,7 +190,6 @@
                         <div class="wait-time">${outDisplay}</div>
                         <div class="wait-label">${typeof group.out.waitTime === 'number' ? 'minutes' : ''}</div>
                         ${delayHtml(group.out)}
-                        ${distanceHtml(group.out)}
                         <span class="status-badge ${escapeHtml(group.out.statusClass)}">${escapeHtml(group.out.status)}</span>
                     </div>
                 </div>
